@@ -1,3 +1,4 @@
+const Validator = require("fastest-validator");
 const models = require("../models");
 
 // create a new post
@@ -9,6 +10,27 @@ function save(req, res) {
 		categoryId: req.body.category_id,
 		userId: 1,
 	};
+
+	// defining the schema constraints to be a valid post
+	const schema = {
+		title: { type: "string", optional: "false", max: 500 },
+		content: { type: "string", optional: "false", max: 1000 },
+		categoryId: { type: "number", optional: "false" },
+	};
+
+	// creating an instance from fastest-validator
+	const v = new Validator();
+
+	// checking the creating post attributes which the defined schema constraints
+	const validationResponse = v.validate(post, schema);
+
+	// validating and displaying errors
+	if (validationResponse != true) {
+		return res.status(400).json({
+			message: "Validation failed",
+			error: validationResponse,
+		});
+	}
 
 	models.Post.create(post)
 		.then(result => {
@@ -62,6 +84,8 @@ function index(req, res) {
 // update a post with given postId and given userId
 function update(req, res) {
 	const id = req.params.id;
+	const userId = 1;
+
 	const updatedPost = {
 		title: req.body.title,
 		content: req.body.content,
@@ -69,7 +93,26 @@ function update(req, res) {
 		categoryId: req.body.category_id,
 	};
 
-	const userId = 1;
+	// creating an instance from fastest-validator
+	const v = new Validator();
+
+	// defining the schema constraints to be a valid post
+	const schema = {
+		title: { type: "string", optional: "false", max: 500 },
+		content: { type: "string", optional: "false", max: 1000 },
+		categoryId: { type: "number", optional: "false" },
+	};
+
+	// checking the creating post attributes which the defined schema constraints
+	const validationResponse = v.validate(updatedPost, schema);
+
+	// validating and displaying errors
+	if (validationResponse != true) {
+		return res.status(400).json({
+			message: "Validation failed",
+			error: validationResponse,
+		});
+	}
 
 	models.Post.update(updatedPost, { where: { id: id, userId: userId } })
 		.then(result =>
